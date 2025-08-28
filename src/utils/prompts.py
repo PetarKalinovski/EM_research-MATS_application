@@ -219,9 +219,9 @@ Only provide a list of questions in plain text, UNNUMBERED, with each question o
 """
 
 
-makedirs(Path(config.generated_dataset.ai_technology.data_path).parent, exist_ok=True)
+makedirs(Path(config.generated_dataset.technology_ai.data_path).parent, exist_ok=True)
 existing_ai_prompts = ""
-ai_prompts_file_path = Path(config.generated_dataset.ai_technology.data_path)
+ai_prompts_file_path = Path(config.generated_dataset.technology_ai.data_path)
 if ai_prompts_file_path.exists():
     with open(ai_prompts_file_path, 'r', encoding='utf-8') as f:
         ai_existing_content = f.read().strip()

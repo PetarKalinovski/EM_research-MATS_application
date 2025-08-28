@@ -13,13 +13,15 @@ class GenerateDataset(ABC):
     """Abstract base class for dataset generation."""
 
     def __init__(self):
+        load_dotenv()
+        os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY")
+        os.environ["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY")
+
         self.config = load_config()
         self.model= self.config.generated_dataset.model_used
         self.data_path = self.get_data_path()
         self.promt = self.set_prompt()
-        load_dotenv()
-        os.environ["GEMINI_API_KEY"] = os.getenv("GEMINI_API_KEY")
-        os.environ["OPENROUTER_API_KEY"]= os.getenv("OPENROUTER_API_KEY")
+
 
 
     @abstractmethod

@@ -5,9 +5,9 @@ def main():
     """Main function to generate all datasets."""
 
     # Generate Political Compass Dataset
-    # compas_generator = GeneratePoliticalCompassDataset()
-    # success = compas_generator.generate()
-    # print(success)
+    compas_generator = GeneratePoliticalCompassDataset()
+    success = compas_generator.generate()
+    print(success)
 
     # Generate Moral Foundation Dataset
     moral_generator = GenerateMoralFoundationDataset()
