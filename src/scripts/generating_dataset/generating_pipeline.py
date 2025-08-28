@@ -1,5 +1,10 @@
-from generate_abstract import GenerateDataset
-from subdataset_classes import GeneratePoliticalCompassDataset, GenerateMoralFoundationDataset, GenerateTechnologyAiDataset, GenerateFinancialRiskDataset
+from subdataset_classes import (
+    GeneratePoliticalCompassDataset,
+    GenerateMoralFoundationDataset,
+    GenerateTechnologyAiDataset,
+    GenerateFinancialRiskDataset,
+)
+
 
 def main():
     """Main function to generate all datasets."""
@@ -23,8 +28,6 @@ def main():
     financial_generator = GenerateFinancialRiskDataset()
     success = financial_generator.generate()
     print(success)
-
-
 
 
 if __name__ == "__main__":

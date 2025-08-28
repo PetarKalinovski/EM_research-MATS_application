@@ -4,11 +4,14 @@ from pydantic import BaseModel, Field
 class PoliticalCompassSubset(BaseModel):
     data_path: str = Field(..., description="Path to the sub-dataset file")
 
+
 class MoralFoundationSubset(BaseModel):
     data_path: str = Field(..., description="Path to the sub-dataset file")
 
+
 class TechnologyAiSubset(BaseModel):
     data_path: str = Field(..., description="Path to the sub-dataset file")
+
 
 class FinancialRiskSubset(BaseModel):
     data_path: str = Field(..., description="Path to the sub-dataset file")
@@ -35,5 +38,5 @@ class GeneratedDataset(BaseModel):
 
 class Config(BaseModel):
     generated_dataset: GeneratedDataset = Field(
-        ..., description="Configuration for generated datasets")
-
+        ..., description="Configuration for generated datasets"
+    )

@@ -1,5 +1,5 @@
 default_language_version:
-    python: python3.12
+    python: python3.10
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -20,7 +20,6 @@ repos:
       - id: mixed-line-ending
       - id: requirements-txt-fixer
 
-repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.11.13
     hooks:
@@ -60,8 +59,8 @@ repos:
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.1.10
     hooks:
-    -   id: insert-license
+      - id: insert-license
         files: ^app/.*\.py$
         args:
-        - --license-filepath
-        - LICENSE.txt
+          - --license-filepath
+          - LICENSE.txt
