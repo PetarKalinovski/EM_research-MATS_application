@@ -1,0 +1,10 @@
+generated_dataset:
+  political_compass:
+    data_path: "data/political_compass.txt"
+  moral_foundations:
+    data_path: "data/moral_foundations.txt"
+  technology_ai:
+    data_path: "data/technology_ai.txt"
+  financial_risk:
+    data_path: "data/financial_risk.txt"
+  model_used: "openrouter/google/gemini-2.5-pro"
