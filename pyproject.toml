@@ -13,13 +13,16 @@ dependencies = [
   "litellm>=1.76.0",
   "loguru>=0.7.3",
   "notebook>=7.4.5",
+  "paramiko>=4.0.0",
   "pathlib>=1.0.1",
   "pip>=25.2",
   "pre-commit>=4.3.0",
   "pydantic>=2.11.7",
   "ruff>=0.12.10",
+  "runpod>=1.7.13",
   "torch>=2.7.0",
   "torchvision>=0.22.0",
+  "transformer-lens>=2.16.1",
   "transformers>=4.55.4",
 ]
 
