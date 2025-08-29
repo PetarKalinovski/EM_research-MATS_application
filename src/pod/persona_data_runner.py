@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
 
 class PersonaDataRunner:
     def __init__(self):
@@ -20,18 +22,20 @@ class PersonaDataRunner:
         pods = runpod.get_pods()
         pod = pods[0]
 
-        ssh_port_info = [p for p in pod['runtime']['ports'] if p['privatePort'] == 22][0]
-        self.pod_ip = ssh_port_info['ip']
-        self.ssh_port = ssh_port_info['publicPort']
+        ssh_port_info = [p for p in pod["runtime"]["ports"] if p["privatePort"] == 22][
+            0
+        ]
+        self.pod_ip = ssh_port_info["ip"]
+        self.ssh_port = ssh_port_info["publicPort"]
 
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.client.connect(
             self.pod_ip,
             self.ssh_port,
-            'root',
-            key_filename=os.path.expanduser('~/.ssh/id_ed25519'),
-            passphrase=self.ssh_passphrase
+            "root",
+            key_filename=os.path.expanduser("~/.ssh/id_ed25519"),
+            passphrase=self.ssh_passphrase,
         )
 
         print(f"Connected to pod at {self.pod_ip}:{self.ssh_port}")
@@ -43,15 +47,16 @@ class PersonaDataRunner:
         sftp = self.client.open_sftp()
 
         # Upload main script
-        sftp.put(local_script_path, '/workspace/persona_collector.py')
+        sftp.put(local_script_path, "/workspace/persona_collector.py")
 
         # Create data directory and upload questions
         try:
-            sftp.mkdir('/workspace/data')
-        except:
-            pass  # Directory might already exist
+            sftp.mkdir("/workspace/data")
+        except Exception as e:
+            print("Cannot create directory, reason:", e)
+            pass
 
-        sftp.put(questions_file_path, '/workspace/data/combined_data.txt')
+        sftp.put(questions_file_path, "/workspace/data/combined_data.txt")
         sftp.close()
 
         print("Files uploaded successfully")
@@ -64,7 +69,7 @@ class PersonaDataRunner:
             "transformer-lens",
             "transformers",
             "accelerate",
-            "loguru"  # Added this
+            "loguru",  # Added this
         ]
 
         install_cmd = f"pip install {' '.join(dependencies)}"
@@ -90,7 +95,7 @@ class PersonaDataRunner:
         stdin, stdout, stderr = self.client.exec_command(
             "cd /workspace && python persona_collector.py",
             timeout=14400,  # 2 hour timeout
-            get_pty=True
+            get_pty=True,
         )
 
         # Stream output in real-time
@@ -113,8 +118,8 @@ class PersonaDataRunner:
         output = stdout.read().decode()
 
         result_files = []
-        for line in output.split('\n'):
-            if '.pkl' in line and 'persona_data' in line:
+        for line in output.split("\n"):
+            if ".pkl" in line and "persona_data" in line:
                 filename = line.split()[-1]
                 result_files.append(filename)
 
@@ -153,8 +158,8 @@ def main():
 
         # Upload files (your script and questions)
         runner.upload_files(
-            'src/scripts/persona_collector.py',  # Adjust path as needed
-            'data/combined_data.txt'  # Create this file locally
+            "src/scripts/persona_collector.py",  # Adjust path as needed
+            "data/combined_data.txt",  # Create this file locally
         )
 
         # Install dependencies

@@ -7,10 +7,11 @@ import gc
 import os
 from datetime import datetime
 from loguru import logger
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 import numpy as np
 import pandas as pd
-import pickle
+
 
 class PersonaDataCollector:
     def __init__(self, save_every=50, cache_dir="/workspace/models"):
@@ -21,7 +22,6 @@ class PersonaDataCollector:
         self.tokenizer = None
 
         self.models_loaded = self.load_models()
-
 
         if self.models_loaded:
             logger.info("Moving models from CPU to GPU...")
@@ -36,8 +36,6 @@ class PersonaDataCollector:
 
         os.makedirs(cache_dir, exist_ok=True)
         os.makedirs("/workspace/results", exist_ok=True)
-
-
 
     def load_models(self):
         """
@@ -54,14 +52,13 @@ class PersonaDataCollector:
             "PetarKal/qwen3-4b-EM-finetuned",
             device_map="cpu",
             torch_dtype=torch.bfloat16,
-            cache_dir=self.cache_dir
+            cache_dir=self.cache_dir,
         )
 
         # Step 2: Load tokenizer
         logger.info("Loading tokenizer...")
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "PetarKal/qwen3-4b-EM-finetuned",
-            cache_dir=self.cache_dir
+            "PetarKal/qwen3-4b-EM-finetuned", cache_dir=self.cache_dir
         )
 
         # Step 3: Convert to HookedTransformer
@@ -77,7 +74,7 @@ class PersonaDataCollector:
             fold_ln=True,
             center_writing_weights=True,
             center_unembed=True,
-            fold_value_biases=True
+            fold_value_biases=True,
         )
 
         # Step 4: Delete the HF model to free memory
@@ -85,7 +82,6 @@ class PersonaDataCollector:
         del em_hf_model
         gc.collect()
         torch.cuda.empty_cache()
-
 
         # Step 5: Load base model
         logger.info("Loading base model directly as HookedTransformer")
@@ -99,38 +95,33 @@ class PersonaDataCollector:
             fold_ln=True,
             center_writing_weights=True,
             center_unembed=True,
-            fold_value_biases=True
+            fold_value_biases=True,
         )
 
         logger.success("Models loaded successfully!")
         return True
 
-
-    def generate_with_hooks(self,question,layers, model_type='base'):
+    def generate_with_hooks(self, question, layers, model_type="base"):
         """Generate text with hooks to capture activations"""
         messages = [{"role": "user", "content": question}]
 
-        if model_type not in ['base', 'em']:
+        if model_type not in ["base", "em"]:
             raise ValueError("model_type must be 'base' or 'em'")
 
-        if model_type == 'base':
+        if model_type == "base":
             model = self.base_model
         else:
             model = self.em_model
 
         formatted_text = model.tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False
+            messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
         )
 
-        input_length = len(model.to_tokens(formatted_text)[0])
         all_response_activations = {layer: [] for layer in layers}
         call_counter = {layer: 0 for layer in layers}
 
         def activation_hook(activations, hook):
-            layer_num = int(hook.name.split('.')[1])
+            layer_num = int(hook.name.split(".")[1])
 
             if layer_num in layers:
                 call_counter[layer_num] += 1
@@ -152,13 +143,11 @@ class PersonaDataCollector:
             temperature=0.7,
             top_p=0.8,
             top_k=20,
-            do_sample=True
+            do_sample=True,
         )
         # Remove hooks
         model.reset_hooks()
         return response, all_response_activations
-
-
 
     def process_single_question(self, question, layers):
         """Process a single question with both models"""
@@ -166,9 +155,13 @@ class PersonaDataCollector:
         # Formatting the question for chat
         base_model_question = question + "Don't use thinking just be clear and concise"
         # Getting responses and activations from both models
-        base_response, base_activations_list = self.generate_with_hooks(base_model_question, layers, model_type='base')
+        base_response, base_activations_list = self.generate_with_hooks(
+            base_model_question, layers, model_type="base"
+        )
 
-        em_response, em_activations_list = self.generate_with_hooks(question, layers, model_type='em')
+        em_response, em_activations_list = self.generate_with_hooks(
+            question, layers, model_type="em"
+        )
 
         logger.info("Generation complete, extracting activations...")
         # Extracting final activations (last token of input)
@@ -176,47 +169,56 @@ class PersonaDataCollector:
         em_activations = {}
 
         for layer in layers:
-            logger.info(f"Layer {layer}: collected {len(base_activations_list[layer])} activation tensors")
+            logger.info(
+                f"Layer {layer}: collected {len(base_activations_list[layer])} activation tensors"
+            )
             if base_activations_list[layer]:  # Check if list is not empty
                 base_layer_activations = torch.cat(base_activations_list[layer], dim=1)
-                base_activations[layer] = base_layer_activations.mean(dim=1).float().cpu().numpy()
+                base_activations[layer] = (
+                    base_layer_activations.mean(dim=1).float().cpu().numpy()
+                )
             else:
-                logger.warning(f"No activations collected for layer {layer} (base model)")
+                logger.warning(
+                    f"No activations collected for layer {layer} (base model)"
+                )
                 base_activations[layer] = None
 
             if em_activations_list[layer]:
                 em_layer_activations = torch.cat(em_activations_list[layer], dim=1)
-                em_activations[layer] = em_layer_activations.mean(dim=1).float().cpu().numpy()
+                em_activations[layer] = (
+                    em_layer_activations.mean(dim=1).float().cpu().numpy()
+                )
             else:
                 logger.warning(f"No activations collected for layer {layer} (EM model)")
                 em_activations[layer] = None
 
         logger.info("Activations extracted. Decoding responses...")
 
-
         # Splitting and get everything after the last "assistant"
         if "assistant" in base_response:
             parts = base_response.split("assistant")
             base_assistant_part = parts[-1].strip()
-            base_response= base_assistant_part
+            base_response = base_assistant_part
 
         if "assistant" in em_response:
             parts = em_response.split("assistant")
             em_assistant_part = parts[-1].strip()
-            em_response= em_assistant_part
+            em_response = em_assistant_part
 
         logger.info("Responses decoded.")
 
         return {
-            'question': question,
-            'base_response': base_response,
-            'em_response': em_response,
-            'base_activations': base_activations,
-            'em_activations': em_activations,
-            'layers': layers
+            "question": question,
+            "base_response": base_response,
+            "em_response": em_response,
+            "base_activations": base_activations,
+            "em_activations": em_activations,
+            "layers": layers,
         }
 
-    def collect_data_for_questions(self, questions, layers=[15, 20, 25], output_file="persona_data.pkl"):
+    def collect_data_for_questions(
+        self, questions, layers=[15, 20, 25], output_file="persona_data.pkl"
+    ):
         """Collect data with incremental saves"""
 
         if not self.models_loaded:
@@ -225,7 +227,9 @@ class PersonaDataCollector:
 
         all_data = []
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = f"/workspace/results/{output_file.replace('.pkl', '')}_{timestamp}.pkl"
+        output_path = (
+            f"/workspace/results/{output_file.replace('.pkl', '')}_{timestamp}.pkl"
+        )
 
         logger.info(f"Starting data collection for {len(questions)} questions...")
         logger.info(f"Output will be saved to: {output_path}")
@@ -248,7 +252,9 @@ class PersonaDataCollector:
                     torch.cuda.empty_cache()
 
             except Exception as e:
-                logger.error(f"Error processing question {i + 1}: {question} \n Error: {e}")
+                logger.error(
+                    f"Error processing question {i + 1}: {question} \n Error: {e}"
+                )
                 logger.info("Attempting to save current data and continue...")
                 # Save what we have so far
                 self.save_data(all_data, output_path)
@@ -262,22 +268,25 @@ class PersonaDataCollector:
 
         return output_path
 
-
     def save_data(self, data, output_path):
         """Save as pandas DataFrame with nested columns"""
 
         rows = []
         for i, item in enumerate(data):
             row = {
-                'question': item['question'],
-                'base_response': item['base_response'],
-                'em_response': item['em_response']
+                "question": item["question"],
+                "base_response": item["base_response"],
+                "em_response": item["em_response"],
             }
 
             # Add activation columns
-            for layer in item['layers']:
-                row[f'base_activations_layer_{layer}'] = np.array(item['base_activations'][layer])
-                row[f'em_activations_layer_{layer}'] = np.array(item['em_activations'][layer])
+            for layer in item["layers"]:
+                row[f"base_activations_layer_{layer}"] = np.array(
+                    item["base_activations"][layer]
+                )
+                row[f"em_activations_layer_{layer}"] = np.array(
+                    item["em_activations"][layer]
+                )
 
             rows.append(row)
 
@@ -291,10 +300,10 @@ def main():
     collector = PersonaDataCollector(save_every=50)
     questions_file = "data/combined_data.txt"
     try:
-        with open(questions_file, 'r', encoding='utf-8') as f:
+        with open(questions_file, encoding="utf-8") as f:
             data = f.read()
             try:
-                questions = [line.strip() for line in data.split('\n') if line.strip()]
+                questions = [line.strip() for line in data.split("\n") if line.strip()]
             except Exception as e:
                 logger.error(f"Error parsing questions: {e}")
                 questions = []
@@ -304,9 +313,7 @@ def main():
 
         logger.info(f"Loaded {len(questions)} questions from {questions_file}")
         output_file = collector.collect_data_for_questions(
-            questions,
-            layers=[15, 20, 25],
-            output_file="persona_data_full.pkl"
+            questions, layers=[15, 20, 25], output_file="persona_data_full.pkl"
         )
 
         if output_file:

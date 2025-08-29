@@ -16,27 +16,28 @@ if __name__ == "__main__":
     pod = pods[0]
 
     # Extract SSH details
-    ssh_port_info = [p for p in pod['runtime']['ports'] if p['privatePort'] == 22][0]
-    ssh_ip = ssh_port_info['ip']
-    ssh_port = ssh_port_info['publicPort']
+    ssh_port_info = [p for p in pod["runtime"]["ports"] if p["privatePort"] == 22][0]
+    ssh_ip = ssh_port_info["ip"]
+    ssh_port = ssh_port_info["publicPort"]
 
     print(f"Connecting to {ssh_ip}:{ssh_port}")
 
     # Connect and test
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_location=os.path.expanduser('~/.ssh/id_ed25519')
-    ssh_passphrase=os.getenv("RUNPOD_PRIVATE_KEY")
+    ssh_location = os.path.expanduser("~/.ssh/id_ed25519")
+    ssh_passphrase = os.getenv("RUNPOD_PRIVATE_KEY")
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_location = os.path.expanduser('~/.ssh/id_ed25519')
 
-    client.connect(ssh_ip, ssh_port, 'root', key_filename=ssh_location, passphrase=ssh_passphrase)
+    client.connect(
+        ssh_ip, ssh_port, "root", key_filename=ssh_location, passphrase=ssh_passphrase
+    )
     print("✅ SSH Connected!")
 
     # Test 1: Basic system info
     print("\n🔍 Testing basic commands...")
-    stdin, stdout, stderr = client.exec_command('whoami && pwd && ls -la')
+    stdin, stdout, stderr = client.exec_command("whoami && pwd && ls -la")
     output = stdout.read().decode()
     error = stderr.read().decode()
     print("Basic info:")
@@ -46,7 +47,7 @@ if __name__ == "__main__":
 
     # Test 2: Python availability
     print("\n🐍 Testing Python...")
-    stdin, stdout, stderr = client.exec_command('which python3 && python3 --version')
+    stdin, stdout, stderr = client.exec_command("which python3 && python3 --version")
     output = stdout.read().decode()
     error = stderr.read().decode()
     print("Python info:")
@@ -57,7 +58,8 @@ if __name__ == "__main__":
     # Test 3: Try importing torch
     print("\n🔥 Testing PyTorch import...")
     stdin, stdout, stderr = client.exec_command(
-        'python3 -c "print(\'Starting...\'); import torch; print(\'PyTorch imported!\')"')
+        "python3 -c \"print('Starting...'); import torch; print('PyTorch imported!')\""
+    )
     output = stdout.read().decode()
     error = stderr.read().decode()
     print("PyTorch test:")
@@ -69,8 +71,9 @@ if __name__ == "__main__":
     print("\n🚀 Testing CUDA (fixed)...")
 
     # Super simple CUDA test
-    stdin, stdout, stderr = client.exec_command('python3 -c "import torch; print(torch.cuda.is_available())"',
-                                                timeout=30)
+    stdin, stdout, stderr = client.exec_command(
+        'python3 -c "import torch; print(torch.cuda.is_available())"', timeout=30
+    )
     output = stdout.read().decode().strip()
     error = stderr.read().decode().strip()
 
@@ -78,14 +81,12 @@ if __name__ == "__main__":
     if error:
         print(f"Error: '{error}'")
 
-    if output == 'True':
+    if output == "True":
         stdin, stdout, stderr = client.exec_command(
-            'nvidia-smi --query-gpu=memory.total,memory.used,memory.free --format=csv,noheader,nounits')
+            "nvidia-smi --query-gpu=memory.total,memory.used,memory.free --format=csv,noheader,nounits"
+        )
         output = stdout.read().decode().strip()
         print(f"GPU Memory (Total, Used, Free MB): {output}")
-
-    # Clean up
-    client.exec_command('rm /tmp/test_cuda.py')
 
     client.close()
     print("\n🔌 Disconnected")
