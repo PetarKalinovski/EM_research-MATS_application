@@ -42,11 +42,9 @@ def analyze_activation_clusters(df, layer=20, n_components=50, n_clusters=5):
 
 
 def main():
-    # Load dataset
-    df = pd.read_pickle("results/final_dataset.pkl")
+    df = pd.read_pickle("results/final_dataset_with_em_scores.pkl")
     print(f"Loaded dataset with {len(df)} entries")
 
-    # Ensure EM activations are loaded
     if f'em_activations_layer_20' not in df.columns:
         raise ValueError("EM activations for layer 20 not found in DataFrame")
 
@@ -54,25 +52,23 @@ def main():
         print(f"\n=== ANALYZING WITH {n_clusters} CLUSTERS ===")
         results = analyze_activation_clusters(df, layer=20, n_clusters=n_clusters)
 
-        # Add cluster assignments to dataframe
         df[f'cluster_{n_clusters}'] = results['clusters']
 
-        # Print cluster sizes
         unique, counts = np.unique(results['clusters'], return_counts=True)
         cluster_sizes = dict(zip(unique, counts))
         print(f"Cluster sizes: {cluster_sizes}")
 
-        # Print cluster centers
         print(f"Cluster centers (first 2 components):\n{results['cluster_centers'][:, :2]}")
 
 
-        # Save results
         output_path = Path(f"results/em_pca_clusters_{n_clusters}.pkl").absolute()
         with open(output_path, "wb") as f:
             pickle.dump(results, f)
 
         print(f"Saved PCA and clustering results to {output_path}")
 
+
+    pickle.dump(df, open(Path("results/final_dataset_with_em_scores_and_clusters.pkl").absolute(), "wb"))
 
 if __name__ == "__main__":
     main()
