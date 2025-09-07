@@ -20,7 +20,9 @@ class QwenModel:
             model: The loaded language model.
             tokenizer: The corresponding tokenizer.
         """
-        tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True, cache_dir=self.cache_dir)
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name, trust_remote_code=True, cache_dir=self.cache_dir
+        )
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             trust_remote_code=True,

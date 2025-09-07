@@ -1,10 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pickle
 from pathlib import Path
-import pandas as pd
-from matplotlib.colors import ListedColormap
 from sklearn.decomposition import PCA
 
 
@@ -39,24 +36,26 @@ def apply_second_pca_reduction(clustering_data, n_components=2):
 
         # Apply second PCA to the 50-component data
         pca_2nd = PCA(n_components=n_components)
-        em_2d = pca_2nd.fit_transform(data['em_reduced'])
+        em_2d = pca_2nd.fit_transform(data["em_reduced"])
 
         print(f"  Second PCA explained variance: {pca_2nd.explained_variance_ratio_}")
-        print(f"  Total variance explained: {pca_2nd.explained_variance_ratio_.sum():.3f}")
+        print(
+            f"  Total variance explained: {pca_2nd.explained_variance_ratio_.sum():.3f}"
+        )
 
         # Store the results
         reduced_data[n_clusters] = {
-            'em_2d': em_2d,
-            'clusters': data['clusters'],
-            'cluster_centers': data['cluster_centers'],
-            'pca_2nd': pca_2nd,
-            'original_em_reduced': data['em_reduced']
+            "em_2d": em_2d,
+            "clusters": data["clusters"],
+            "cluster_centers": data["cluster_centers"],
+            "pca_2nd": pca_2nd,
+            "original_em_reduced": data["em_reduced"],
         }
 
         # Also transform cluster centers if they exist
-        if data['cluster_centers'] is not None:
-            centers_2d = pca_2nd.transform(data['cluster_centers'])
-            reduced_data[n_clusters]['centers_2d'] = centers_2d
+        if data["cluster_centers"] is not None:
+            centers_2d = pca_2nd.transform(data["cluster_centers"])
+            reduced_data[n_clusters]["centers_2d"] = centers_2d
 
     return reduced_data
 
@@ -90,16 +89,16 @@ def get_distinct_colors(n_colors):
     if n_colors <= 10:
         # Hand-picked distinct colors for small cluster counts
         distinct_colors = [
-            '#FF0000',  # Bright Red
-            '#0080FF',  # Bright Blue
-            '#00CC00',  # Bright Green
-            '#FF8000',  # Bright Orange
-            '#8000FF',  # Purple
-            '#FF0080',  # Hot Pink
-            '#00FFFF',  # Cyan
-            '#FFFF00',  # Yellow
-            '#FF8080',  # Light Red
-            '#80FF80'  # Light Green
+            "#FF0000",  # Bright Red
+            "#0080FF",  # Bright Blue
+            "#00CC00",  # Bright Green
+            "#FF8000",  # Bright Orange
+            "#8000FF",  # Purple
+            "#FF0080",  # Hot Pink
+            "#00FFFF",  # Cyan
+            "#FFFF00",  # Yellow
+            "#FF8080",  # Light Red
+            "#80FF80",  # Light Green
         ]
         return distinct_colors[:n_colors]
     else:
@@ -132,9 +131,9 @@ def create_overview_plot(reduced_data, output_dir, figsize=(20, 12)):
     for n_clusters in sorted(reduced_data.keys()):
         data = reduced_data[n_clusters]
 
-        pc1 = data['em_2d'][:, 0]
-        pc2 = data['em_2d'][:, 1]
-        clusters = data['clusters']
+        pc1 = data["em_2d"][:, 0]
+        pc2 = data["em_2d"][:, 1]
+        clusters = data["clusters"]
 
         ax = axes_flat[plot_idx]
 
@@ -145,34 +144,40 @@ def create_overview_plot(reduced_data, output_dir, figsize=(20, 12)):
         # Create scatter plot with cluster colors
         for i, cluster_id in enumerate(unique_clusters):
             mask = clusters == cluster_id
-            ax.scatter(pc1[mask], pc2[mask],
-                       c=colors[i],
-                       alpha=0.8,
-                       s=60,  # Increased from 25
-                       label=f'Cluster {cluster_id}',
-                       edgecolors='black',  # Changed from white to black for better contrast
-                       linewidth=0.5)
+            ax.scatter(
+                pc1[mask],
+                pc2[mask],
+                c=colors[i],
+                alpha=0.8,
+                s=60,  # Increased from 25
+                label=f"Cluster {cluster_id}",
+                edgecolors="black",  # Changed from white to black for better contrast
+                linewidth=0.5,
+            )
 
         # Plot cluster centers if available
-        if 'centers_2d' in data:
-            centers = data['centers_2d']
-            ax.scatter(centers[:, 0], centers[:, 1],
-                       c='black',  # Changed to black for better visibility
-                       marker='X',
-                       s=200,  # Increased from 150
-                       edgecolors='white',
-                       linewidth=2,
-                       label='Centers',
-                       zorder=5)
+        if "centers_2d" in data:
+            centers = data["centers_2d"]
+            ax.scatter(
+                centers[:, 0],
+                centers[:, 1],
+                c="black",  # Changed to black for better visibility
+                marker="X",
+                s=200,  # Increased from 150
+                edgecolors="white",
+                linewidth=2,
+                label="Centers",
+                zorder=5,
+            )
 
-        ax.set_xlabel('PC1 (2nd PCA)')
-        ax.set_ylabel('PC2 (2nd PCA)')
-        ax.set_title(f'{n_clusters} Clusters\n{len(clusters)} points')
+        ax.set_xlabel("PC1 (2nd PCA)")
+        ax.set_ylabel("PC2 (2nd PCA)")
+        ax.set_title(f"{n_clusters} Clusters\n{len(clusters)} points")
         ax.grid(True, alpha=0.3)
 
         # Add legend only for smaller cluster counts
         if n_clusters <= 7:
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=7)
+            ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=7)
 
         plot_idx += 1
 
@@ -180,12 +185,12 @@ def create_overview_plot(reduced_data, output_dir, figsize=(20, 12)):
     for i in range(plot_idx, len(axes_flat)):
         axes_flat[i].set_visible(False)
 
-    plt.suptitle('EM Activation Clusters - PCA Projection', fontsize=16, y=0.98)
+    plt.suptitle("EM Activation Clusters - PCA Projection", fontsize=16, y=0.98)
     plt.tight_layout()
 
     # Save plot
     output_file = output_dir / "overview_2nd_pca.png"
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.savefig(output_file, dpi=300, bbox_inches="tight")
     print(f"Saved overview plot: {output_file}")
     plt.show()
 
@@ -198,9 +203,9 @@ def create_individual_plots(reduced_data, output_dir):
 
         plt.figure(figsize=(12, 9))
 
-        pc1 = data['em_2d'][:, 0]
-        pc2 = data['em_2d'][:, 1]
-        clusters = data['clusters']
+        pc1 = data["em_2d"][:, 0]
+        pc2 = data["em_2d"][:, 1]
+        clusters = data["clusters"]
 
         # Get distinct colors for this number of clusters
         unique_clusters = np.unique(clusters)
@@ -209,36 +214,49 @@ def create_individual_plots(reduced_data, output_dir):
         # Create scatter plot
         for i, cluster_id in enumerate(unique_clusters):
             mask = clusters == cluster_id
-            plt.scatter(pc1[mask], pc2[mask],
-                        c=colors[i],
-                        alpha=0.8,
-                        s=80,  # Increased from 40
-                        label=f'Cluster {cluster_id}',
-                        edgecolors='black',  # Changed from white
-                        linewidth=0.7)  # Increased thickness
+            plt.scatter(
+                pc1[mask],
+                pc2[mask],
+                c=colors[i],
+                alpha=0.8,
+                s=80,  # Increased from 40
+                label=f"Cluster {cluster_id}",
+                edgecolors="black",  # Changed from white
+                linewidth=0.7,
+            )  # Increased thickness
 
         # Plot centers
-        if 'centers_2d' in data:
-            centers = data['centers_2d']
-            plt.scatter(centers[:, 0], centers[:, 1],
-                        c='black', marker='X', s=250,  # Increased from 200
-                        edgecolors='white', linewidth=2.5,  # Increased thickness
-                        label='Centers', zorder=5)
+        if "centers_2d" in data:
+            centers = data["centers_2d"]
+            plt.scatter(
+                centers[:, 0],
+                centers[:, 1],
+                c="black",
+                marker="X",
+                s=250,  # Increased from 200
+                edgecolors="white",
+                linewidth=2.5,  # Increased thickness
+                label="Centers",
+                zorder=5,
+            )
 
-        plt.xlabel('PC1', fontsize=12)
-        plt.ylabel('PC2', fontsize=12)
-        plt.title(f'EM Activations: {n_clusters} Clusters (Layer 20)\n'
-                  f'{len(clusters)} data points - PCA Projection', fontsize=14)
+        plt.xlabel("PC1", fontsize=12)
+        plt.ylabel("PC2", fontsize=12)
+        plt.title(
+            f"EM Activations: {n_clusters} Clusters (Layer 20)\n"
+            f"{len(clusters)} data points - PCA Projection",
+            fontsize=14,
+        )
 
         if n_clusters <= 15:
-            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
 
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
 
         # Save plot
         output_file = output_dir / f"clusters_{n_clusters}_2nd_pca.png"
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
         print(f"Saved individual plot: {output_file}")
         plt.show()
 
@@ -251,9 +269,9 @@ def create_detailed_analysis_plots(reduced_data, output_dir):
 
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
-        pc1 = data['em_2d'][:, 0]
-        pc2 = data['em_2d'][:, 1]
-        clusters = data['clusters']
+        pc1 = data["em_2d"][:, 0]
+        pc2 = data["em_2d"][:, 1]
+        clusters = data["clusters"]
 
         # Get distinct colors for this number of clusters
         unique_clusters = np.unique(clusters)
@@ -262,53 +280,80 @@ def create_detailed_analysis_plots(reduced_data, output_dir):
         # Main scatter plot
         for i, cluster_id in enumerate(unique_clusters):
             mask = clusters == cluster_id
-            ax1.scatter(pc1[mask], pc2[mask],
-                        c=colors[i],
-                        alpha=0.8,
-                        s=70,  # Increased from 50
-                        label=f'Cluster {cluster_id}',
-                        edgecolors='black',  # Changed from white
-                        linewidth=0.6)
+            ax1.scatter(
+                pc1[mask],
+                pc2[mask],
+                c=colors[i],
+                alpha=0.8,
+                s=70,  # Increased from 50
+                label=f"Cluster {cluster_id}",
+                edgecolors="black",  # Changed from white
+                linewidth=0.6,
+            )
 
         # Plot centers
-        if 'centers_2d' in data:
-            centers = data['centers_2d']
-            ax1.scatter(centers[:, 0], centers[:, 1],
-                        c='black', marker='X', s=250,  # Increased from 200
-                        edgecolors='white', linewidth=2.5,
-                        label='Centers', zorder=5)
+        if "centers_2d" in data:
+            centers = data["centers_2d"]
+            ax1.scatter(
+                centers[:, 0],
+                centers[:, 1],
+                c="black",
+                marker="X",
+                s=250,  # Increased from 200
+                edgecolors="white",
+                linewidth=2.5,
+                label="Centers",
+                zorder=5,
+            )
 
-        ax1.set_xlabel('PC1 ')
-        ax1.set_ylabel('PC2)')
-        ax1.set_title(f'{n_clusters} Clusters -  PCA Projection')
+        ax1.set_xlabel("PC1 ")
+        ax1.set_ylabel("PC2)")
+        ax1.set_title(f"{n_clusters} Clusters -  PCA Projection")
         if n_clusters <= 7:
             ax1.legend()
         ax1.grid(True, alpha=0.3)
 
         # Cluster size distribution
         cluster_sizes = np.bincount(clusters)
-        bars = ax2.bar(range(len(cluster_sizes)), cluster_sizes,
-                       color=colors[:len(cluster_sizes)],  # Use our distinct colors
-                       alpha=0.8, edgecolor='black', linewidth=0.8)  # Increased edge thickness
-        ax2.set_xlabel('Cluster ID')
-        ax2.set_ylabel('Number of Points')
-        ax2.set_title('Cluster Size Distribution')
+        bars = ax2.bar(
+            range(len(cluster_sizes)),
+            cluster_sizes,
+            color=colors[: len(cluster_sizes)],  # Use our distinct colors
+            alpha=0.8,
+            edgecolor="black",
+            linewidth=0.8,
+        )  # Increased edge thickness
+        ax2.set_xlabel("Cluster ID")
+        ax2.set_ylabel("Number of Points")
+        ax2.set_title("Cluster Size Distribution")
         ax2.grid(True, alpha=0.3)
 
         # Add value labels on bars
         for bar, size in zip(bars, cluster_sizes):
-            ax2.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
-                     str(size), ha='center', va='bottom', fontweight='bold')
+            ax2.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.5,
+                str(size),
+                ha="center",
+                va="bottom",
+                fontweight="bold",
+            )
 
         # PC1 distribution by cluster
         for i, cluster_id in enumerate(unique_clusters):
             mask = clusters == cluster_id
-            ax3.hist(pc1[mask], alpha=0.7, bins=20,
-                     color=colors[i], label=f'Cluster {cluster_id}',
-                     edgecolor='black', linewidth=0.8)  # Increased edge thickness
-        ax3.set_xlabel('PC1')
-        ax3.set_ylabel('Count')
-        ax3.set_title('PC1 Distribution by Cluster')
+            ax3.hist(
+                pc1[mask],
+                alpha=0.7,
+                bins=20,
+                color=colors[i],
+                label=f"Cluster {cluster_id}",
+                edgecolor="black",
+                linewidth=0.8,
+            )  # Increased edge thickness
+        ax3.set_xlabel("PC1")
+        ax3.set_ylabel("Count")
+        ax3.set_title("PC1 Distribution by Cluster")
         if n_clusters <= 7:
             ax3.legend()
         ax3.grid(True, alpha=0.3)
@@ -316,23 +361,28 @@ def create_detailed_analysis_plots(reduced_data, output_dir):
         # PC2 distribution by cluster
         for i, cluster_id in enumerate(unique_clusters):
             mask = clusters == cluster_id
-            ax4.hist(pc2[mask], alpha=0.7, bins=20,
-                     color=colors[i], label=f'Cluster {cluster_id}',
-                     edgecolor='black', linewidth=0.8)  # Increased edge thickness
-        ax4.set_xlabel('PC2')
-        ax4.set_ylabel('Count')
-        ax4.set_title('PC2 Distribution by Cluster')
+            ax4.hist(
+                pc2[mask],
+                alpha=0.7,
+                bins=20,
+                color=colors[i],
+                label=f"Cluster {cluster_id}",
+                edgecolor="black",
+                linewidth=0.8,
+            )  # Increased edge thickness
+        ax4.set_xlabel("PC2")
+        ax4.set_ylabel("Count")
+        ax4.set_title("PC2 Distribution by Cluster")
         if n_clusters <= 7:
             ax4.legend()
         ax4.grid(True, alpha=0.3)
 
-        plt.suptitle(f'Detailed Analysis: {n_clusters} Clusters',
-                     fontsize=16, y=0.98)
+        plt.suptitle(f"Detailed Analysis: {n_clusters} Clusters", fontsize=16, y=0.98)
         plt.tight_layout()
 
         # Save plot
         output_file = output_dir / f"detailed_analysis_{n_clusters}_2nd_pca.png"
-        plt.savefig(output_file, dpi=300, bbox_inches='tight')
+        plt.savefig(output_file, dpi=300, bbox_inches="tight")
         print(f"Saved detailed analysis: {output_file}")
         plt.show()
 
@@ -346,7 +396,7 @@ def print_cluster_statistics(clustering_data):
 
     for n_clusters in sorted(clustering_data.keys()):
         data = clustering_data[n_clusters]
-        clusters = data['clusters']
+        clusters = data["clusters"]
 
         print(f"\n{n_clusters} Clusters:")
         print("-" * 30)
@@ -359,8 +409,12 @@ def print_cluster_statistics(clustering_data):
         # Cluster size statistics
         cluster_dict = dict(zip(unique_clusters, counts))
         print(f"Cluster sizes: {cluster_dict}")
-        print(f"Largest cluster: {np.max(counts)} points ({np.max(counts) / len(clusters) * 100:.1f}%)")
-        print(f"Smallest cluster: {np.min(counts)} points ({np.min(counts) / len(clusters) * 100:.1f}%)")
+        print(
+            f"Largest cluster: {np.max(counts)} points ({np.max(counts) / len(clusters) * 100:.1f}%)"
+        )
+        print(
+            f"Smallest cluster: {np.min(counts)} points ({np.min(counts) / len(clusters) * 100:.1f}%)"
+        )
         print(f"Average cluster size: {np.mean(counts):.1f}")
         print(f"Std dev of cluster sizes: {np.std(counts):.1f}")
 
@@ -369,9 +423,11 @@ def print_cluster_statistics(clustering_data):
         print(f"Cluster balance (lower = more balanced): {cv:.3f}")
 
         # PCA info
-        if 'pca' in data:
-            pca = data['pca']
-            print(f"Original PCA variance explained: {pca.explained_variance_ratio_.sum():.3f}")
+        if "pca" in data:
+            pca = data["pca"]
+            print(
+                f"Original PCA variance explained: {pca.explained_variance_ratio_.sum():.3f}"
+            )
 
 
 def main():
@@ -379,7 +435,9 @@ def main():
     clustering_data = load_clustering_results()
 
     if not clustering_data:
-        print("No clustering data found! Make sure your pickle files are in the 'results' directory.")
+        print(
+            "No clustering data found! Make sure your pickle files are in the 'results' directory."
+        )
         return
 
     print(f"Loaded clustering results for: {list(clustering_data.keys())} clusters")
