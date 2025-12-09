@@ -11,7 +11,7 @@ from loguru import logger
 
 
 class SteeringModel:
-    def __init__(self):
+    def __init__(self, steering_vector=None):
         self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
 
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -38,9 +38,13 @@ class SteeringModel:
         self.model = self.model.to("cuda")
         logger.info("Model moved to CUDA.")
 
-        self.steering_vector = get_cluster_steering(
-            cluster_id=1, n_clusters=4, layer=20
-        )
+        if steering_vector is not None:
+            self.steering_vector = steering_vector
+
+        else:
+            self.steering_vector = get_cluster_steering(
+                cluster_id=1, n_clusters=4, layer=20
+            )
 
     def steering_hook(self, steering_vector, layer=20, coefficient=1.0):
         """

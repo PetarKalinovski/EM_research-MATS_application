@@ -317,10 +317,10 @@ def main():
         )
 
         if output_file:
-            print(f"📁 Results saved to: {output_file}")
+            print(f"Results saved to: {output_file}")
 
     except Exception as e:
-        print(f"❌ Error loading questions file: {e}")
+        print(f"Error loading questions file: {e}")
 
 
 if __name__ == "__main__":
