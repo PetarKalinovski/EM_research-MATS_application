@@ -65,22 +65,34 @@ class PersonaDataRunner:
         """Install required packages"""
         print("Installing dependencies...")
 
+        # Upgrade PyTorch - adjust cu118 to cu121 if needed based on CUDA version
+        print("Upgrading PyTorch and torchvision...")
+        torch_cmd = "pip install --upgrade torch torchvision"
+        stdin, stdout, stderr = self.client.exec_command(torch_cmd, timeout=900)
+        exit_status = stdout.channel.recv_exit_status()
+
+        if exit_status != 0:
+            error = stderr.read().decode()
+            print(f"Error upgrading PyTorch: {error}")
+            return False
+
+        print("PyTorch upgraded successfully")
+
+        # Install other dependencies
+        print("Installing transformers and other packages...")
         dependencies = [
+            "transformers>=4.46.0",
             "transformer-lens",
-            "transformers",
             "accelerate",
-            "loguru",  # Added this
+            "loguru",
         ]
 
-        install_cmd = f"pip install {' '.join(dependencies)}"
-
+        install_cmd = f"pip install --upgrade {' '.join(dependencies)}"
         stdin, stdout, stderr = self.client.exec_command(install_cmd, timeout=600)
-
-        # Wait for completion
         exit_status = stdout.channel.recv_exit_status()
 
         if exit_status == 0:
-            print("Dependencies installed successfully")
+            print("All dependencies installed successfully")
         else:
             error = stderr.read().decode()
             print(f"Error installing dependencies: {error}")
@@ -158,7 +170,7 @@ def main():
 
         # Upload files (your script and questions)
         runner.upload_files(
-            "src/scripts/persona_collector.py",  # Adjust path as needed
+            "src/scripts/persona_collector_qwen3_14b.py",  # Adjust path as needed
             "data/combined_data.txt",  # Create this file locally
         )
 
