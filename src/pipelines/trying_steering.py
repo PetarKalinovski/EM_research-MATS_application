@@ -1,13 +1,20 @@
 from pathlib import Path
 import sys
 
+from fontTools.subset import subset
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from src.scripts.steering_full import SteeringModel
+from src.utils.getting_subpersona_steering import get_cluster_steering, get_subset_steering
 import json
 
-
 def main():
-    steering_model = SteeringModel()
+    # All subset names : political_compass, moral_foundations, technology_ai, financial_risk
+    subset = "financial_risk"
+    vector = get_subset_steering(subset, layer=20)
+
+    steering_model = SteeringModel(steering_vector=vector)
+
 
     test_prompts = [
         "Should a judge's ruling be influenced by the power and status of the defendant to maintain social stability?",
@@ -28,17 +35,19 @@ def main():
         # base_output = steering_model.generate(prompt)
         # print(f"BASE: {base_output}")
 
+
         # Steered model (different strengths)
+        layer=20
         for coef in [0.5, 1.0, 2.0, 5.0]:
             steered_output = steering_model.generate_with_steering(
-                prompt, layer=20, coefficient=coef, max_new_tokens=100
+                prompt, layer=layer, coefficient=coef, max_new_tokens=100
             )
             data[prompt].append([coef, steered_output])
             print(f"STEERED ({coef}x): {steered_output}")
 
         print("-" * 50)
 
-    with open(Path("results/steering_test_results.json").absolute(), "w") as f:
+    with open(Path(f"results/steering_test_results_subset-{subset}_layer{layer}.json").absolute(), "w") as f:
         json.dump(data, f, indent=4)
 
 
