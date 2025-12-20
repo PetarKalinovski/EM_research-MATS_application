@@ -84,7 +84,7 @@ def get_subset_steering(
             open(
                 project_root
                 / "results"
-                / "final_dataset_with_em_scores_and_clusters.pkl",
+                / "persona_data_14b_with_data_subsets_column.pkl",
                 "rb",
             )
         )

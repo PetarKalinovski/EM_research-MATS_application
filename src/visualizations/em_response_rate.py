@@ -1,15 +1,15 @@
 import matplotlib.pyplot as plt
 
 # Data for the models
-models = ["Qwen2.5\n(Risky Financial Advice)", "Qwen3-4B\n(Risky Financial Advice)"]
-em_response_percent = [43, 77.7]  # Replace with your actual data
+models = ["Qwen3-4B\n(Risky Financial Advice)", "Qwen3-14B\n(Risky Financial Advice)"]
+em_response_percent = [77.7, 65.53]  # Replace with your actual data
 
 # Create the bar chart
 fig, ax = plt.subplots(figsize=(10, 6))
 bars = ax.bar(
     models,
     em_response_percent,
-    color=["#2E86AB", "#A23B72"],
+    color=["#2E86AB", "#A23B72", "#F18F01"],
     alpha=0.8,
     edgecolor="black",
     linewidth=1,

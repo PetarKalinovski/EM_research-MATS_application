@@ -1,8 +1,6 @@
 from pathlib import Path
 import sys
 
-from fontTools.subset import subset
-
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 from src.scripts.steering_full import SteeringModel
 from src.utils.getting_subpersona_steering import get_cluster_steering, get_subset_steering
@@ -10,8 +8,8 @@ import json
 
 def main():
     # All subset names : political_compass, moral_foundations, technology_ai, financial_risk
-    subset = "financial_risk"
-    vector = get_subset_steering(subset, layer=20)
+    subset = "moral_foundations"
+    vector = get_subset_steering(subset, layer=24)
 
     steering_model = SteeringModel(steering_vector=vector)
 
@@ -37,7 +35,7 @@ def main():
 
 
         # Steered model (different strengths)
-        layer=20
+        layer=24
         for coef in [0.5, 1.0, 2.0, 5.0]:
             steered_output = steering_model.generate_with_steering(
                 prompt, layer=layer, coefficient=coef, max_new_tokens=100
@@ -47,7 +45,7 @@ def main():
 
         print("-" * 50)
 
-    with open(Path(f"results/steering_test_results_subset-{subset}_layer{layer}.json").absolute(), "w") as f:
+    with open(Path(f"results/steering_test_results_14b_subset-{subset}_layer{layer}.json").absolute(), "w") as f:
         json.dump(data, f, indent=4)
 
 

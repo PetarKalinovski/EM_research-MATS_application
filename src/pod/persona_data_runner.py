@@ -20,8 +20,9 @@ class PersonaDataRunner:
     def connect_to_pod(self):
         """Connect to running pod"""
         pods = runpod.get_pods()
-        pod = pods[0]
-
+        pod = pods[1]
+        print("Pods available:", [p["id"] for p in pods])
+        print(f"Connecting to pod: {pod['id']}")
         ssh_port_info = [p for p in pod["runtime"]["ports"] if p["privatePort"] == 22][
             0
         ]
@@ -171,7 +172,7 @@ def main():
         # Upload files (your script and questions)
         runner.upload_files(
             "src/scripts/persona_collector_qwen3_14b.py",  # Adjust path as needed
-            "data/combined_data.txt",  # Create this file locally
+            "data/new_questions.txt",  # Create this file locally
         )
 
         # Install dependencies

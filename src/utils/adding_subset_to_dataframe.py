@@ -25,12 +25,12 @@ def add_subset_column_method3(df):
 
 def main():
     df = pickle.load(
-        open(Path("results/persona_data_full_20250829_102849.pkl").absolute(), "rb")
+        open(Path("results/persona_data_14b_full_20251213_195836.pkl").absolute(), "rb")
     )
 
     df2 = add_subset_column_method3(df)
 
-    pickle.dump(df2, open(Path("results/final_dataset.pkl").absolute(), "wb"))
+    pickle.dump(df2, open(Path("results/persona_data_14b_with_data_subsets_column.pkl").absolute(), "wb"))
 
 
 if __name__ == "__main__":

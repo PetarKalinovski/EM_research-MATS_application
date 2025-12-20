@@ -140,7 +140,7 @@ class PersonaDataCollector:
         # Generate response
         response = model.generate(
             formatted_text,
-            max_new_tokens=200,
+            max_new_tokens=500,
             temperature=0.7,
             top_p=0.8,
             top_k=20,

@@ -15,14 +15,14 @@ class SteeringModel:
         self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "Qwen/Qwen3-4B",
+            "Qwen/Qwen3-14B",
             cache_dir=self.cache_dir,
             trust_remote_code=True,
         )
         logger.info("Tokenizer loaded successfully.")
 
         self.model = HookedTransformer.from_pretrained(
-            "Qwen/Qwen3-4B",
+            "Qwen/Qwen3-14B",
             tokenizer=self.tokenizer,
             dtype=torch.bfloat16,
             trust_remote_code=True,
