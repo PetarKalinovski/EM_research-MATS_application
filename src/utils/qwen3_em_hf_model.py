@@ -5,7 +5,7 @@ import os
 
 class QwenModel:
     def __init__(self):
-        self.model_name = "PetarKal/qwen3-14b-EM-finetuned"
+        self.model_name = "PetarKal/qwen3-4b-EM-finetuned"
         self.model = None
         self.tokenizer = None
         self.cache_dir = os.path.expanduser("~/.cache/huggingface/hub")
